@@ -5,20 +5,8 @@ defmodule Stv do
   end
 
   def create_initial_state(votes) do
-    all_candidates(votes)
+    Votes.candidates(votes)
     |> Enum.reduce(%{}, fn(x, acc) -> Map.put(acc, x, %{weight: 1, status: :hopeful}) end)
-  end
-
-  def add_unless_contains(list, item) do
-    cond do
-      Enum.find(list, fn(x) -> x == item end) -> list
-      true -> [item | list]
-    end
-  end
-
-  def all_candidates(votes) do
-    Enum.reduce(votes, [], fn(x, acc) -> x ++ acc end)
-    |> Enum.reduce([], fn(x, acc) -> add_unless_contains(acc, x) end)
   end
 
   def run_cycle(state, votes, seat_count) do
@@ -32,29 +20,6 @@ defmodule Stv do
       true ->
         exclude_loser(state, apply_weights(state, votes)) |> run_cycle(votes, seat_count)
     end
-  end
-
-  def apply_weights(state, votes) do
-    Enum.map(votes, fn(vote) -> build_weighted(%{}, state, vote, 1) end)
-    |> Enum.reduce(%{}, &fold_vote/2)
-  end
-
-  def fold_vote(totals, weighted_vote) do
-    Enum.reduce(weighted_vote, totals, &vote_reduce/2)
-  end
-
-  def vote_reduce({candidate, amount}, totals) do
-    Map.update(totals, candidate, amount, fn(x) -> x + amount end)
-  end
-
-  def build_weighted(output, _, [], remaining_power) do
-    Map.put(output, :excess, remaining_power)
-  end
-
-  def build_weighted(output, state, [candidate | rest], remaining_power) do
-    weighted_vote = get_in(state, [candidate, :weight]) * remaining_power
-    Map.put(output, candidate, weighted_vote)
-    |> build_weighted(state, rest, remaining_power - weighted_vote)
   end
 
   def exclude_loser(state, weighted_vote) do
@@ -142,5 +107,14 @@ defmodule Stv do
 
   def compute_quota(vote_count, excess, seat_count) do
     (vote_count - excess) / (seat_count + 1)
+  end
+
+  # Adapters
+  defp weight_map(state) do
+    Enum.reduce(state, %{}, fn({id, %{weight: weight}}, acc) -> Map.put(acc, id, weight) end)
+  end
+
+  defp apply_weights(state, votes) do
+    Votes.apply_weights(votes, weight_map(state))
   end
 end
