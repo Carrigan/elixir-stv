@@ -39,7 +39,7 @@ defmodule StvTest do
   end
 
   def ran_run(votes, seat_count) do
-    votes |> Enum.shuffle() |> Stv.run(seat_count)
+    votes |> Enum.shuffle() |> Meek.compute(seat_count)
   end
 
   def match_print(list_1, list_2) do
