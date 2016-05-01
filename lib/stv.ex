@@ -1,4 +1,4 @@
-defmodule Meek do
+defmodule Stv do
   def compute(votes, seat_count) do
     create_initial_state(votes)
     |> run_cycle(votes, seat_count)

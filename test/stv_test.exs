@@ -1,6 +1,6 @@
-defmodule MeekTest do
+defmodule StvTest do
   use ExUnit.Case
-  doctest Meek
+  doctest Stv
 
   test "that can call a simple majority" do
     votes = [[1, 3, 2], [1, 3], [1, 2]]
@@ -39,7 +39,7 @@ defmodule MeekTest do
   end
 
   def ran_run(votes, seat_count) do
-    votes |> Enum.shuffle() |> Meek.compute(seat_count)
+    votes |> Enum.shuffle() |> Stv.compute(seat_count)
   end
 
   def match_print(list_1, list_2) do
