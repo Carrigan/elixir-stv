@@ -11,6 +11,7 @@ defmodule Votes do
     |> Enum.reduce(%{}, &fold_vote/2)
   end
 
+  # Helpers
   defp fold_vote(totals, weighted_vote) do
     Enum.reduce(weighted_vote, totals, &vote_reduce/2)
   end
