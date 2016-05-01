@@ -68,22 +68,26 @@ defmodule Meek do
     Enum.all?(state, fn({_, %{status: status}}) -> status == :excluded || status == :elected end)
   end
 
-  def settle_weights(state, votes, seat_count, iters \\ 0) do
+  def settle_weights(state, votes, seat_count) do
     weighted_votes = apply_weights(state, votes)
     quota = compute_quota(Enum.count(votes), weighted_votes[:excess], seat_count)
 
     cond do
-      weights_settled?(state, quota, weighted_votes) || iters == 1000 ->
+      weights_settled?(state, quota, weighted_votes) ->
         state
       true ->
         elect_above_quota(state, weighted_votes, quota)
         |> update_weights(weighted_votes, quota)
-        |> settle_weights(votes, seat_count, iters + 1)
+        |> settle_weights(votes, seat_count)
     end
   end
 
   def weights_settled?(s, q, w) do
-    no_electable_candidates(s, q, w) && elected_in_tolerance?(s, q, w)
+    no_electable_candidates(s, q, w) && (none_elected?(s) || elected_in_tolerance?(s, q, w))
+  end
+
+  def none_elected?(state) do
+    !Enum.any?(state, fn({_, %{status: status}}) -> status == :elected end)
   end
 
   def no_electable_candidates(state, quota, weighted_votes) do
@@ -96,7 +100,7 @@ defmodule Meek do
 
   def in_tolerance?([], _), do: false
   def in_tolerance?(elected_votes, quota) do
-    Enum.map(elected_votes, fn({_, total}) -> abs(total - quota) end)
+    Enum.map(elected_votes, fn({_, total}) -> abs(1 - (quota / total)) end)
     |> Enum.all?(fn(diff) -> diff < 0.01 end)
   end
 

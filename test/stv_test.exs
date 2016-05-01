@@ -1,6 +1,6 @@
-defmodule StvTest do
+defmodule MeekTest do
   use ExUnit.Case
-  doctest Stv
+  doctest Meek
 
   test "that can call a simple majority" do
     votes = [[1, 3, 2], [1, 3], [1, 2]]
