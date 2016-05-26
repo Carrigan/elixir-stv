@@ -8,6 +8,7 @@ defmodule Stv do
   For more info on this computation method, see:
   https://svn.apache.org/repos/asf/steve/trunk/stv_background/meekm.pdf
   """
+  def compute([], _), do: []
   def compute(votes, seat_count) do
     Votes.candidates(votes)
     |> Enum.reduce(%{}, fn(x, acc) -> Map.put(acc, x, %{weight: 1, status: :hopeful}) end)
@@ -43,7 +44,7 @@ defmodule Stv do
     quota = compute_quota(Enum.count(votes), weighted_votes[:excess], seat_count)
 
     cond do
-      weights_settled?(state, quota, weighted_votes) ->
+      weights_settled?(state, quota, weighted_votes, seat_count) ->
         state
       true ->
         elect_above_quota(state, weighted_votes, quota)
@@ -66,8 +67,11 @@ defmodule Stv do
     (vote_count - excess) / (seat_count + 1)
   end
 
-  defp weights_settled?(s, q, w) do
-    no_candidates_electable(s, q, w) && (!Candidates.any?(s, :elected) || elected_in_tolerance?(s, q, w))
+  defp weights_settled?(s, q, w, c) do
+    no_candidates_electable(s, q, w) &&
+      (!Candidates.any?(s, :elected) ||
+      elected_in_tolerance?(s, q, w)) ||
+      Enum.count(winners(s)) == c
   end
 
   defp no_candidates_electable(state, quota, weighted_votes) do

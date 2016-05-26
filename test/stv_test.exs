@@ -24,6 +24,16 @@ defmodule StvTest do
     run_many_times(votes, 3, [3, 1, 4])
   end
 
+  test "when only one candidate receives votes" do
+    votes = [[1], [1], [1], [1]]
+    run_many_times(votes, 1, [1])
+  end
+
+  test "when no votes are cast" do
+    votes = []
+    run_many_times(votes, 1, [])
+  end
+
   test "initially no winners, elimination will create one" do
     votes = [[1], [1], [2], [2], [3, 1]]
     run_many_times(votes, 1, [1])
